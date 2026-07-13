@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #143f67;
+    --color-background: #f4f7f6;
+    --color-surface: #ffffff;
+    --color-text: #333333;
+    --color-muted: #888888;
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+    --color-border: #e5e7eb;
+  }
+  
+  .dark {
+    --color-primary: #93c5fd;
+    --color-background: #0f172a;
+    --color-surface: #1e293b;
+    --color-text: #f8fafc;
+    --color-muted: #94a3b8;
+    --color-border: #334155;
+  }
+  
+  body {
+    @apply bg-background text-text transition-colors duration-200;
+  }
+}
