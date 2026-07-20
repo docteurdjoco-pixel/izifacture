@@ -34,6 +34,9 @@ const Header = () => {
     if (pathname.startsWith('/invoices/create')) return { section: 'Factures', page: 'Création' };
     if (pathname.startsWith('/invoices/')) return { section: 'Factures', page: 'Détails' };
     if (pathname.startsWith('/invoices')) return { section: 'Factures', page: 'Liste' };
+    if (pathname.startsWith('/quotes/create')) return { section: 'Devis', page: 'Création' };
+    if (pathname.startsWith('/quotes/')) return { section: 'Devis', page: 'Détails' };
+    if (pathname.startsWith('/quotes')) return { section: 'Devis', page: 'Liste' };
     return { section: 'Dashboard', page: 'Aperçu' };
   };
 
@@ -77,6 +80,10 @@ const Header = () => {
             <Link href="/invoices" onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-colors ${pathname.startsWith('/invoices') ? 'bg-blue-50 text-blue-600' : 'text-text hover:bg-background'}`}>
               <FileText size={20} />
               Factures
+            </Link>
+            <Link href="/quotes" onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-colors ${pathname.startsWith('/quotes') ? 'bg-blue-50 text-blue-600' : 'text-text hover:bg-background'}`}>
+              <FileText size={20} className="transform rotate-180" />
+              Devis
             </Link>
             <div className="h-px bg-border my-2"></div>
             <Link href="/support" onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-colors ${pathname.startsWith('/support') ? 'bg-blue-50 text-blue-600' : 'text-text hover:bg-background'}`}>

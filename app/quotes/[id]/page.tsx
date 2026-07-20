@@ -3,82 +3,81 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Edit2, Trash2, Download, Send, CheckCircle, AlertCircle } from 'lucide-react';
-import { getInvoiceById, updateInvoiceStatus, Invoice, getCompanySettings, CompanySettings } from '@/lib/data';
+import { ArrowLeft, Edit2, Trash2, Download, Send, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { getQuoteById, updateQuoteStatus, Quote, getCompanySettings, CompanySettings } from '@/lib/data';
 
 const getStatusBadge = (status: string) => {
   switch (status) {
-    case 'Payée': return <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-semibold rounded-full border border-green-200 whitespace-nowrap">Payée</span>;
-    case 'Envoyée': return <span className="px-3 py-1 bg-orange-50 text-orange-700 text-sm font-semibold rounded-full border border-orange-200 whitespace-nowrap">Envoyée</span>;
+    case 'Accepté': return <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-semibold rounded-full border border-green-200 whitespace-nowrap">Accepté</span>;
+    case 'Envoyé': return <span className="px-3 py-1 bg-orange-50 text-orange-700 text-sm font-semibold rounded-full border border-orange-200 whitespace-nowrap">Envoyé</span>;
     case 'Brouillon': return <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-semibold rounded-full border border-gray-200 whitespace-nowrap">Brouillon</span>;
-    case 'En retard': return <span className="px-3 py-1 bg-red-50 text-red-700 text-sm font-semibold rounded-full border border-red-200 whitespace-nowrap">En retard</span>;
+    case 'Refusé': return <span className="px-3 py-1 bg-red-50 text-red-700 text-sm font-semibold rounded-full border border-red-200 whitespace-nowrap">Refusé</span>;
     default: return null;
   }
 };
 
-export default function InvoiceDetailPage() {
+export default function QuoteDetailPage() {
   const params = useParams();
   const router = useRouter();
   
-  // Dans une vraie application, on ferait un fetch Supabase avec l'ID
-  const invoiceId = params.id as string;
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const quoteId = params.id as string;
+  const [quote, setQuote] = useState<Quote | null>(null);
   const [companySettings, setCompanySettings] = useState<CompanySettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchInvoice = async () => {
+    const fetchQuote = async () => {
       setLoading(true);
-      const data = await getInvoiceById(invoiceId);
+      const data = await getQuoteById(quoteId);
       const settings = await getCompanySettings();
-      setInvoice(data);
+      setQuote(data);
       setCompanySettings(settings);
       setLoading(false);
     };
-    fetchInvoice();
-  }, [invoiceId]);
+    fetchQuote();
+  }, [quoteId]);
 
   useEffect(() => {
-    if (invoice) {
+    if (quote) {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('download') === 'true') {
         setTimeout(() => {
           handleDownloadPDF();
-          router.replace(`/invoices/${invoiceId}`);
+          router.replace(`/quotes/${quoteId}`);
         }, 500);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [invoice]);
+  }, [quote]);
 
   if (loading) {
-    return <div className="flex justify-center py-20 text-muted">Chargement de la facture...</div>;
+    return <div className="flex justify-center py-20 text-muted">Chargement du devis...</div>;
   }
 
-  if (!invoice) {
+  if (!quote) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <h2 className="text-xl font-bold text-text mb-4">Facture introuvable</h2>
-        <Link href="/invoices" className="text-blue-600 hover:underline">Retour aux factures</Link>
+        <h2 className="text-xl font-bold text-text mb-4">Devis introuvable</h2>
+        <Link href="/quotes" className="text-blue-600 hover:underline">Retour aux devis</Link>
       </div>
     );
   }
 
-  const client = invoice.client;
+  const client = quote.client;
   
-  const taxRate = invoice.subtotal > 0 ? Math.round((invoice.tax / invoice.subtotal) * 100) : (companySettings?.taxRate ?? 18);
+  const taxRate = quote.subtotal > 0 ? Math.round((quote.tax / quote.subtotal) * 100) : (companySettings?.taxRate ?? 18);
 
-  const handleStatusChange = async (newStatus: 'Brouillon' | 'Envoyée' | 'Payée' | 'En retard') => {
-    const success = await updateInvoiceStatus(invoiceId, newStatus);
+  const handleStatusChange = async (newStatus: 'Brouillon' | 'Envoyé' | 'Accepté' | 'Refusé') => {
+    const success = await updateQuoteStatus(quoteId, newStatus);
     if (success) {
-      setInvoice({ ...invoice, status: newStatus });
+      setQuote({ ...quote, status: newStatus });
     } else {
       alert("Erreur lors de la mise à jour du statut");
     }
   };
 
   const handleDownloadPDF = async () => {
-    const element = document.getElementById('invoice-content');
+    const element = document.getElementById('quote-content');
     if (!element) return;
     
     // Dynamically import html2pdf
@@ -86,7 +85,7 @@ export default function InvoiceDetailPage() {
     
     const opt: any = {
       margin:       10,
-      filename:     `Facture_${invoice.invoiceNumber}.pdf`,
+      filename:     `Devis_${quote.quoteNumber}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2, backgroundColor: '#ffffff', useCORS: true },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -99,20 +98,14 @@ export default function InvoiceDetailPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
-          <Link href="/invoices" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <Link href="/quotes" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <ArrowLeft size={20} className="text-muted" />
           </Link>
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-text">Facture {invoice.invoiceNumber}</h1>
-              <div className="hidden sm:block">
-                {getStatusBadge(invoice.status)}
-              </div>
+              <h1 className="text-2xl font-bold text-text">Devis {quote.quoteNumber}</h1>
             </div>
-            <p className="text-muted text-sm">Créée le {invoice.dateIssue}</p>
-            <div className="sm:hidden mt-2">
-              {getStatusBadge(invoice.status)}
-            </div>
+            <p className="text-muted text-sm">Créé le {quote.dateIssue}</p>
           </div>
         </div>
         
@@ -123,27 +116,15 @@ export default function InvoiceDetailPage() {
         </div>
       </div>
 
-      {/* Actions de Statut Rapides */}
-      <div className="bg-surface border border-border rounded-xl shadow-sm p-4 flex gap-3 overflow-x-auto">
-        <span className="text-sm font-medium text-muted self-center mr-2">Changer le statut :</span>
-        <button onClick={() => handleStatusChange('Envoyée')} className="px-4 py-2 text-sm font-medium rounded-md bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 flex items-center gap-2">
-          <Send size={16} /> Marquer comme Envoyée
-        </button>
-        <button onClick={() => handleStatusChange('Payée')} className="px-4 py-2 text-sm font-medium rounded-md bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 flex items-center gap-2">
-          <CheckCircle size={16} /> Marquer comme Payée
-        </button>
-        <button onClick={() => handleStatusChange('En retard')} className="px-4 py-2 text-sm font-medium rounded-md bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 flex items-center gap-2">
-          <AlertCircle size={16} /> Marquer comme En retard
-        </button>
-      </div>
 
-      <div id="invoice-content" className="bg-surface border border-border rounded-xl shadow-sm p-8">
+
+      <div id="quote-content" className="bg-surface border border-border rounded-xl shadow-sm p-8">
         
-        {/* Header Facture */}
+        {/* Header Devis */}
         <div className="flex justify-between items-start mb-12">
           <div>
-            <h2 className="text-3xl font-black text-primary mb-2">FACTURE</h2>
-            <p className="text-muted text-sm">{invoice.invoiceNumber}</p>
+            <h2 className="text-3xl font-black text-primary mb-2">DEVIS</h2>
+            <p className="text-muted text-sm">{quote.quoteNumber}</p>
           </div>
           <div className="text-right flex flex-col items-end">
             {companySettings?.logoUrl ? (
@@ -164,7 +145,7 @@ export default function InvoiceDetailPage() {
         {/* Info Client & Dates */}
         <div className="flex flex-col md:flex-row justify-between gap-8 mb-12">
           <div>
-            <h4 className="text-xs font-semibold text-muted uppercase mb-2">Facturé à</h4>
+            <h4 className="text-xs font-semibold text-muted uppercase mb-2">Devis pour</h4>
             <p className="font-bold text-text text-lg">{client?.name}</p>
             <p className="text-sm text-muted mt-1">{client?.email}</p>
             <p className="text-sm text-muted">{client?.phone}</p>
@@ -173,11 +154,11 @@ export default function InvoiceDetailPage() {
           <div className="flex gap-12">
             <div>
               <h4 className="text-xs font-semibold text-muted uppercase mb-2">Date d'émission</h4>
-              <p className="font-medium text-text">{invoice.dateIssue}</p>
+              <p className="font-medium text-text">{quote.dateIssue}</p>
             </div>
             <div>
-              <h4 className="text-xs font-semibold text-muted uppercase mb-2">Date d'échéance</h4>
-              <p className="font-medium text-text">{invoice.dateDue}</p>
+              <h4 className="text-xs font-semibold text-muted uppercase mb-2">Validité jusqu'au</h4>
+              <p className="font-medium text-text">{quote.dateDue}</p>
             </div>
           </div>
         </div>
@@ -194,7 +175,7 @@ export default function InvoiceDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {invoice.items.map((item, idx) => (
+              {quote.items.map((item, idx) => (
                 <tr key={idx} className="border-b border-border">
                   <td className="py-4 font-medium text-text">{item.description}</td>
                   <td className="py-4 text-center">{item.quantity}</td>
@@ -211,15 +192,15 @@ export default function InvoiceDetailPage() {
           <div className="w-full md:w-1/3 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-muted">Sous-total</span>
-              <span className="font-medium">{invoice.subtotal.toLocaleString('fr-FR')} FCFA</span>
+              <span className="font-medium">{quote.subtotal.toLocaleString('fr-FR')} FCFA</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted">TVA ({taxRate}%)</span>
-              <span className="font-medium">{invoice.tax.toLocaleString('fr-FR')} FCFA</span>
+              <span className="font-medium">{quote.tax.toLocaleString('fr-FR')} FCFA</span>
             </div>
             <div className="flex justify-between text-lg font-bold border-t border-border pt-3">
               <span>Total TTC</span>
-              <span className="text-primary">{invoice.total.toLocaleString('fr-FR')} FCFA</span>
+              <span className="text-primary">{quote.total.toLocaleString('fr-FR')} FCFA</span>
             </div>
           </div>
         </div>

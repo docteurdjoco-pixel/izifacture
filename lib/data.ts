@@ -35,6 +35,7 @@ export type CompanySettings = {
   email?: string;
   address?: string;
   logoUrl?: string;
+  taxRate?: number;
 };
 
 import { z } from 'zod';
@@ -70,7 +71,8 @@ const companySettingsSchema = z.object({
   phone: z.string().optional().nullable(),
   email: z.string().email('Email invalide').optional().nullable().or(z.literal('')),
   address: z.string().optional().nullable(),
-  logoUrl: z.string().optional().nullable()
+  logoUrl: z.string().optional().nullable(),
+  taxRate: z.number().min(0).max(100).optional()
 });
 
 export const getClients = async () => {
@@ -368,7 +370,8 @@ export const getCompanySettings = async () => {
     phone: data.phone,
     email: data.email,
     address: data.address,
-    logoUrl: data.logo_url
+    logoUrl: data.logo_url,
+    taxRate: data.tax_rate
   } as CompanySettings;
 };
 
@@ -392,6 +395,7 @@ export const updateCompanySettings = async (settingsData: CompanySettings) => {
     email: settingsData.email,
     address: settingsData.address,
     logo_url: settingsData.logoUrl,
+    tax_rate: settingsData.taxRate ?? 18,
     user_id: userData.user.id,
     updated_at: new Date().toISOString()
   };
@@ -409,10 +413,206 @@ export const updateCompanySettings = async (settingsData: CompanySettings) => {
   }
 
   if (result.error) {
-    console.error('Action impossible');
+    console.error('Action impossible:', result.error);
     return false;
   }
   
   return true;
 };
 
+// --- QUOTES (DEVIS) ---
+
+export type QuoteItem = {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+};
+
+export type Quote = {
+  id: string;
+  quoteNumber: string;
+  clientId: string;
+  dateIssue: string;
+  dateDue: string;
+  status: 'Brouillon' | 'Envoyé' | 'Accepté' | 'Refusé';
+  items: QuoteItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  client?: Client;
+};
+
+const quoteItemSchema = z.object({
+  description: z.string().min(1, 'La description est requise'),
+  quantity: z.number().min(0, 'La quantité doit être positive'),
+  unitPrice: z.number().min(0, 'Le prix unitaire doit être positif'),
+  total: z.number().min(0)
+});
+
+const quoteSchema = z.object({
+  quoteNumber: z.string().min(1),
+  clientId: z.string().uuid(),
+  dateIssue: z.string(),
+  dateDue: z.string(),
+  status: z.enum(['Brouillon', 'Envoyé', 'Accepté', 'Refusé']),
+  subtotal: z.number().min(0),
+  tax: z.number().min(0),
+  total: z.number().min(0)
+});
+
+export const getQuotes = async () => {
+  const { data, error } = await supabase
+    .from('quotes')
+    .select(`
+      *,
+      clients (*),
+      quote_items (*)
+    `)
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching quotes:', error);
+    return [];
+  }
+  
+  return data.map((quote: any) => ({
+    id: quote.id,
+    quoteNumber: quote.quote_number,
+    clientId: quote.client_id,
+    dateIssue: quote.date_issue,
+    dateDue: quote.date_due,
+    status: quote.status,
+    subtotal: quote.subtotal,
+    tax: quote.tax,
+    total: quote.total,
+    items: quote.quote_items.map((item: any) => ({
+      id: item.id,
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      total: item.total
+    })),
+    client: quote.clients
+  })) as Quote[];
+};
+
+export const getQuoteById = async (id: string) => {
+  const { data, error } = await supabase
+    .from('quotes')
+    .select(`
+      *,
+      clients (*),
+      quote_items (*)
+    `)
+    .eq('id', id)
+    .single();
+    
+  if (error) {
+    console.error('Error fetching quote:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    quoteNumber: data.quote_number,
+    clientId: data.client_id,
+    dateIssue: data.date_issue,
+    dateDue: data.date_due,
+    status: data.status,
+    subtotal: data.subtotal,
+    tax: data.tax,
+    total: data.total,
+    items: data.quote_items.map((item: any) => ({
+      id: item.id,
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      total: item.total
+    })),
+    client: data.clients
+  } as Quote;
+};
+
+export const createQuote = async (
+  quoteData: Omit<Quote, 'id' | 'items'>,
+  items: Omit<QuoteItem, 'id'>[]
+) => {
+  try {
+    quoteSchema.parse(quoteData);
+    z.array(quoteItemSchema).parse(items);
+  } catch (err) {
+    console.error("Erreur de validation:", err);
+    return null;
+  }
+
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return null;
+
+  const { data: qData, error: qError } = await supabase
+    .from('quotes')
+    .insert({
+      quote_number: quoteData.quoteNumber,
+      client_id: quoteData.clientId,
+      date_issue: quoteData.dateIssue,
+      date_due: quoteData.dateDue,
+      status: quoteData.status,
+      subtotal: quoteData.subtotal,
+      tax: quoteData.tax,
+      total: quoteData.total,
+      user_id: userData.user.id
+    })
+    .select()
+    .single();
+
+  if (qError) {
+    console.error('Action impossible');
+    return null;
+  }
+
+  const itemsToInsert = items.map(item => ({
+    quote_id: qData.id,
+    description: item.description,
+    quantity: item.quantity,
+    unit_price: item.unitPrice,
+    total: item.total
+  }));
+
+  const { error: itemsError } = await supabase
+    .from('quote_items')
+    .insert(itemsToInsert);
+
+  if (itemsError) {
+    console.error('Action impossible');
+    return null;
+  }
+
+  return qData;
+};
+
+export const updateQuoteStatus = async (id: string, status: string) => {
+  const { error } = await supabase
+    .from('quotes')
+    .update({ status })
+    .eq('id', id);
+    
+  if (error) {
+    console.error('Error updating status:', error);
+    return false;
+  }
+  return true;
+};
+
+export const deleteQuote = async (id: string) => {
+  const { error } = await supabase
+    .from('quotes')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting quote:', error);
+    return false;
+  }
+  return true;
+};

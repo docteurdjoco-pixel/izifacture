@@ -81,13 +81,13 @@ export default function InvoicesPage() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-muted uppercase bg-background/50 border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-semibold">N° Facture</th>
-                <th className="px-6 py-4 font-semibold">Client</th>
-                <th className="px-6 py-4 font-semibold">Date d'émission</th>
-                <th className="px-6 py-4 font-semibold">Date d'échéance</th>
-                <th className="px-6 py-4 font-semibold text-right">Montant TTC</th>
-                <th className="px-6 py-4 font-semibold text-center">Statut</th>
-                <th className="px-6 py-4 font-semibold text-center">Détails</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">N° Facture</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">Client</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">Date d'émission</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">Date d'échéance</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-right">Montant TTC</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-center">Statut</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-center">Détails</th>
               </tr>
             </thead>
             <tbody>
@@ -102,15 +102,15 @@ export default function InvoicesPage() {
                   const client = clients.find(c => c.id === invoice.clientId);
                 return (
                   <tr key={invoice.id} className="border-b border-border hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-6 py-4 font-medium text-text">{invoice.invoiceNumber}</td>
-                    <td className="px-6 py-4 font-medium text-text">{client?.name}</td>
-                    <td className="px-6 py-4 text-muted">{invoice.dateIssue}</td>
-                    <td className="px-6 py-4 text-muted">{invoice.dateDue}</td>
-                    <td className="px-6 py-4 text-right font-semibold text-text">{invoice.total.toLocaleString('fr-FR')} FCFA</td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 font-medium text-text">{invoice.invoiceNumber}</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 font-medium text-text">{client?.name}</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-muted">{invoice.dateIssue}</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-muted">{invoice.dateDue}</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-right font-semibold text-text">{invoice.total.toLocaleString('fr-FR')} FCFA</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
                       {getStatusBadge(invoice.status)}
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
                       <Link href={`/invoices/${invoice.id}`} className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                         <ChevronRight size={18} />
                       </Link>

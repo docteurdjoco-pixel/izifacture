@@ -117,11 +117,11 @@ export default function ClientsPage() {
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-muted uppercase bg-background/50 border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-semibold">Nom</th>
-                <th className="px-6 py-4 font-semibold">Email</th>
-                <th className="px-6 py-4 font-semibold">Téléphone</th>
-                <th className="px-6 py-4 font-semibold">Adresse</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">Nom</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">Email</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">Téléphone</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">Adresse</th>
+                <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -134,11 +134,11 @@ export default function ClientsPage() {
               ) : (
                 filteredClients.map((client) => (
                   <tr key={client.id} className="border-b border-border hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-text">{client.name}</td>
-                    <td className="px-6 py-4 text-muted">{client.email}</td>
-                    <td className="px-6 py-4 text-muted">{client.phone}</td>
-                    <td className="px-6 py-4 text-muted max-w-[200px] truncate">{client.address}</td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 font-medium text-text">{client.name}</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-muted">{client.email}</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-muted">{client.phone}</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-muted max-w-[200px] truncate">{client.address}</td>
+                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <button onClick={() => handleOpenModal(client)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                           <Edit2 size={16} />
@@ -161,7 +161,7 @@ export default function ClientsPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
             <div className="p-6 border-b border-border">
               <h2 className="text-xl font-bold">{editingClient ? 'Modifier le client' : 'Ajouter un client'}</h2>
             </div>

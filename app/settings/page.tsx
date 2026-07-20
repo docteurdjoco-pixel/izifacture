@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Upload, Building2, Phone, Mail, MapPin, Save, CheckCircle2 } from 'lucide-react';
+import { Settings, Upload, Building2, Phone, Mail, MapPin, Save, CheckCircle2, Percent, AlertCircle } from 'lucide-react';
 import { getCompanySettings, updateCompanySettings } from '@/lib/data';
 
 export default function SettingsPage() {
@@ -11,9 +11,11 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState('+33 1 23 45 67 89');
   const [email, setEmail] = useState('contact@izifacture.com');
   const [address, setAddress] = useState('123 Avenue des Champs-Élysées, 75008 Paris');
+  const [taxRate, setTaxRate] = useState<number>(18);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -23,6 +25,7 @@ export default function SettingsPage() {
         if (settings.phone) setPhone(settings.phone);
         if (settings.email) setEmail(settings.email);
         if (settings.address) setAddress(settings.address);
+        if (settings.taxRate !== undefined) setTaxRate(settings.taxRate);
         if (settings.logoUrl) setLogoPreview(settings.logoUrl);
       }
       setLoading(false);
@@ -31,8 +34,14 @@ export default function SettingsPage() {
   }, []);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLogoError(null);
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 100 * 1024) {
+        setLogoError("La taille de l'image dépasse 100 Ko.");
+        e.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result as string);
@@ -49,6 +58,7 @@ export default function SettingsPage() {
       phone,
       email,
       address,
+      taxRate,
       logoUrl: logoPreview || undefined
     });
     
@@ -64,7 +74,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-4 md:p-8 relative">
+    <div className="relative">
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Header Section */}
@@ -101,7 +111,13 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Logo de l'entreprise</label>
-                  <p className="text-xs text-gray-500">Format recommandé: PNG ou JPG, max 2MB. Ratio 1:1.</p>
+                  <p className="text-xs text-gray-500">Format recommandé: PNG ou JPG, max 100 Ko. Ratio 1:1.</p>
+                  {logoError && (
+                    <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 px-3 py-2 rounded-lg border border-red-100">
+                      <AlertCircle size={16} className="shrink-0" />
+                      <span>{logoError}</span>
+                    </div>
+                  )}
                   <div className="relative inline-block mt-2">
                     <input 
                       type="file" 
@@ -204,6 +220,29 @@ export default function SettingsPage() {
                       onChange={e => setAddress(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white text-gray-900 resize-none"
                     ></textarea>
+                  </div>
+                </div>
+
+                {/* Tax Rate */}
+                <div className="space-y-2 md:col-span-2">
+                  <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700">
+                    Taux de TVA (%)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Percent size={18} />
+                    </div>
+                    <input
+                      type="number"
+                      id="taxRate"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      placeholder="18"
+                      value={taxRate}
+                      onChange={e => setTaxRate(parseFloat(e.target.value) || 0)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-gray-50 focus:bg-white text-gray-900"
+                    />
                   </div>
                 </div>
               </div>

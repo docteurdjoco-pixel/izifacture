@@ -99,12 +99,12 @@ const RecentInvoices = () => {
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-muted uppercase bg-background/50 border-b border-border">
             <tr>
-              <th className="px-6 py-4 font-semibold">N° Facture</th>
-              <th className="px-6 py-4 font-semibold">Client</th>
-              <th className="px-6 py-4 font-semibold">Date</th>
-              <th className="px-6 py-4 font-semibold text-right">Montant</th>
-              <th className="px-6 py-4 font-semibold text-center">Statut</th>
-              <th className="px-6 py-4 font-semibold text-center">Action</th>
+              <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">N° Facture</th>
+              <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">Client</th>
+              <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold">Date</th>
+              <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-right">Montant</th>
+              <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-center">Statut</th>
+              <th className="px-4 py-3 sm:px-6 sm:py-4 font-semibold text-center">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -117,14 +117,14 @@ const RecentInvoices = () => {
             ) : (
               displayInvoices.map((invoice, idx) => (
                 <tr key={idx} className="border-b border-border hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-text">{invoice.invoiceNumber}</td>
-                  <td className="px-6 py-4 font-medium text-text">{invoice.client?.name}</td>
-                  <td className="px-6 py-4 text-muted">{invoice.dateIssue}</td>
-                  <td className="px-6 py-4 text-right font-semibold text-text">{invoice.total.toLocaleString('fr-FR')} FCFA</td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-4 py-3 sm:px-6 sm:py-4 font-medium text-text">{invoice.invoiceNumber}</td>
+                  <td className="px-4 py-3 sm:px-6 sm:py-4 font-medium text-text">{invoice.client?.name}</td>
+                  <td className="px-4 py-3 sm:px-6 sm:py-4 text-muted">{invoice.dateIssue}</td>
+                  <td className="px-4 py-3 sm:px-6 sm:py-4 text-right font-semibold text-text">{invoice.total.toLocaleString('fr-FR')} FCFA</td>
+                  <td className="px-4 py-3 sm:px-6 sm:py-4 text-center">
                     {getStatusBadge(invoice.status)}
                   </td>
-                  <td className="px-6 py-4 text-center relative">
+                  <td className="px-4 py-3 sm:px-6 sm:py-4 text-center relative">
                     <button onClick={() => setOpenDropdown(openDropdown === idx ? null : idx)} className="inline-flex p-2 text-muted hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                       <MoreHorizontal size={18} />
                     </button>

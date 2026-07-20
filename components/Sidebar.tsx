@@ -64,6 +64,10 @@ const Sidebar = () => {
             <FileText size={20} />
             Factures
           </Link>
+          <Link href="/quotes" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors ${pathname.startsWith('/quotes') ? 'bg-blue-50 text-blue-600' : 'text-muted hover:bg-background hover:text-text'}`}>
+            <FileText size={20} className="transform rotate-180" />
+            Devis
+          </Link>
         </nav>
       </div>
 

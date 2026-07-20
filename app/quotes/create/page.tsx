@@ -4,15 +4,15 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Save, Send, CheckCircle, Download } from 'lucide-react';
-import { getClients, createInvoice, Client, InvoiceItem, getCompanySettings } from '@/lib/data';
+import { getClients, createQuote, Client, QuoteItem, getCompanySettings } from '@/lib/data';
 
-export default function CreateInvoicePage() {
+export default function CreateQuotePage() {
   const router = useRouter();
   const [clientId, setClientId] = useState('');
   const [dateIssue, setDateIssue] = useState(new Date().toISOString().split('T')[0]);
   const [dateDue, setDateDue] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
+  const [createdQuoteId, setCreatedQuoteId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   
   const [clients, setClients] = useState<Client[]>([]);
@@ -28,7 +28,7 @@ export default function CreateInvoicePage() {
     });
   }, []);
 
-  const [items, setItems] = useState<Omit<InvoiceItem, 'id' | 'total'>[]>([
+  const [items, setItems] = useState<Omit<QuoteItem, 'id' | 'total'>[]>([
     { description: '', quantity: 1, unitPrice: 0 }
   ]);
 
@@ -56,20 +56,18 @@ export default function CreateInvoicePage() {
   const tax = subtotal * (taxRate / 100);
   const total = subtotal + tax;
 
-  const handleSubmit = async (status: 'Brouillon' | 'Envoyée') => {
+  const handleSubmit = async (status: 'Brouillon' | 'Envoyé') => {
     if (!clientId) return;
     
     setIsSaving(true);
     
-    // Generate a temporary invoice number or let the DB handle it if it was an auto-increment,
-    // but the schema says TEXT NOT NULL UNIQUE. We'll generate one here.
-    const invNumber = '#INV-' + Math.floor(100000 + Math.random() * 900000);
+    const quoteNumber = '#DEV-' + Math.floor(100000 + Math.random() * 900000);
     
-    const invoiceData = {
-      invoiceNumber: invNumber,
+    const quoteData = {
+      quoteNumber,
       clientId,
       dateIssue,
-      dateDue: dateDue || dateIssue, // Fallback if empty
+      dateDue: dateDue || dateIssue,
       status,
       subtotal,
       tax,
@@ -81,31 +79,31 @@ export default function CreateInvoicePage() {
       total: item.quantity * item.unitPrice
     }));
     
-    const result = await createInvoice(invoiceData, itemsData);
+    const result = await createQuote(quoteData, itemsData);
     
     setIsSaving(false);
     
     if (result) {
-      setCreatedInvoiceId(result.id);
-      if (status === 'Envoyée') {
+      setCreatedQuoteId(result.id);
+      if (status === 'Envoyé') {
         setShowSuccessModal(true);
       } else {
-        router.push('/invoices');
+        router.push('/quotes');
       }
     } else {
-      alert("Erreur lors de la création de la facture");
+      alert("Erreur lors de la création du devis");
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/invoices" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <Link href="/quotes" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
           <ArrowLeft size={20} className="text-muted" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-text mb-1">Créer une Facture</h1>
-          <p className="text-muted text-sm">Remplissez les informations ci-dessous pour générer une facture.</p>
+          <h1 className="text-2xl font-bold text-text mb-1">Créer un Devis</h1>
+          <p className="text-muted text-sm">Remplissez les informations ci-dessous pour générer un devis.</p>
         </div>
       </div>
 
@@ -128,20 +126,20 @@ export default function CreateInvoicePage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-text mb-1">N° de Facture</label>
-            <input type="text" value="#INV-AUTO" disabled className="w-full bg-gray-100 rounded-md px-4 py-2.5 text-sm text-muted border border-border cursor-not-allowed" />
+            <label className="block text-sm font-medium text-text mb-1">N° de Devis</label>
+            <input type="text" value="#DEV-AUTO" disabled className="w-full bg-gray-100 rounded-md px-4 py-2.5 text-sm text-muted border border-border cursor-not-allowed" />
           </div>
           <div>
             <label className="block text-sm font-medium text-text mb-1">Date d'émission *</label>
             <input type="date" value={dateIssue} onChange={e => setDateIssue(e.target.value)} className="w-full bg-background rounded-md px-4 py-2.5 text-sm outline-none border border-border focus:border-blue-500" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text mb-1">Date d'échéance *</label>
+            <label className="block text-sm font-medium text-text mb-1">Validité jusqu'au *</label>
             <input type="date" value={dateDue} onChange={e => setDateDue(e.target.value)} className="w-full bg-background rounded-md px-4 py-2.5 text-sm outline-none border border-border focus:border-blue-500" required />
           </div>
         </div>
 
-        {/* Lignes de facture */}
+        {/* Lignes de devis */}
         <div>
           <h3 className="text-lg font-semibold text-text mb-4">Articles / Services</h3>
           <div className="space-y-4">
@@ -199,10 +197,7 @@ export default function CreateInvoicePage() {
 
         {/* Actions */}
         <div className="border-t border-border pt-6 flex flex-col-reverse sm:flex-row gap-4 sm:justify-end">
-          <button onClick={() => handleSubmit('Brouillon')} disabled={isSaving} className="w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-medium text-text bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
-            <Save size={18} /> {isSaving ? 'Sauvegarde...' : 'Sauvegarder Brouillon'}
-          </button>
-          <button onClick={() => handleSubmit('Envoyée')} className="w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2" disabled={!clientId || isSaving}>
+          <button onClick={() => handleSubmit('Envoyé')} className="w-full sm:w-auto px-6 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2" disabled={!clientId || isSaving}>
             <Send size={18} /> {isSaving ? 'Création...' : 'Créer et Envoyer'}
           </button>
         </div>
@@ -217,24 +212,15 @@ export default function CreateInvoicePage() {
               <div className="flex items-center justify-center w-16 h-16 mx-auto bg-green-100 rounded-full mb-4">
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-bold text-center text-gray-900 mb-2">Facture Créée !</h3>
+              <h3 className="text-xl font-bold text-center text-gray-900 mb-2">Devis Créé !</h3>
               <p className="text-center text-gray-500 mb-6">
-                Votre facture a été enregistrée en attente avec succès.
+                Votre devis a été enregistré avec succès.
               </p>
               
               <div className="flex flex-col gap-3">
+
                 <button 
-                  onClick={() => {
-                    if (createdInvoiceId) {
-                      router.push(`/invoices/${createdInvoiceId}?download=true`);
-                    }
-                  }}
-                  className="w-full px-4 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium rounded-xl transition-colors flex justify-center items-center gap-2"
-                >
-                  <Download size={18} /> Télécharger la facture
-                </button>
-                <button 
-                  onClick={() => router.push('/invoices')}
+                  onClick={() => router.push('/quotes')}
                   className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm shadow-blue-200"
                 >
                   OK
