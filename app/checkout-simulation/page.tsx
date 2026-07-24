@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-export default function CheckoutSimulation() {
+function SimulationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -82,5 +82,17 @@ export default function CheckoutSimulation() {
         Annuler et retourner
       </button>
     </div>
+  );
+}
+
+export default function CheckoutSimulation() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="animate-spin text-blue-600" size={32} />
+      </div>
+    }>
+      <SimulationContent />
+    </Suspense>
   );
 }
