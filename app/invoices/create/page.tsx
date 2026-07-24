@@ -66,13 +66,13 @@ export default function CreateInvoicePage() {
   const tax = subtotal * (taxRate / 100);
   const total = subtotal + tax;
 
-  const handleSelectPlan = async (planId: string) => {
+  const handleSelectPlan = async (planId: string, phone: string, countryCode: string) => {
     setIsCheckoutLoading(planId);
     try {
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId, phone: '+22891475677', countryCode: 'TG' })
+        body: JSON.stringify({ planId, phone, countryCode })
       });
       const data = await response.json();
       if (data.url) {
