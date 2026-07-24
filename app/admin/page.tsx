@@ -15,19 +15,25 @@ export default function AdminDashboard() {
     async function loadData() {
       setIsLoading(true);
       
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user || authData.user.email !== 'docteurdjoco@gmail.com') {
-        window.location.href = '/dashboard';
-        return;
-      }
+      try {
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authData.user || authData.user.email !== 'docteurdjoco@gmail.com') {
+          window.location.href = '/dashboard';
+          return;
+        }
 
-      const res = await getAdminDashboardData();
-      if (res.success) {
-        setData(res.data);
-      } else {
-        setError(res.error || 'Erreur inconnue');
+        const res = await getAdminDashboardData();
+        if (res.success) {
+          setData(res.data);
+        } else {
+          setError(res.error || 'Erreur inconnue');
+        }
+      } catch (err) {
+        console.error("Erreur de chargement:", err);
+        setError("Impossible de charger les données administrateur.");
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     loadData();
   }, []);
