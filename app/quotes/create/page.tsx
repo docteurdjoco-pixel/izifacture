@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Save, Send, CheckCircle, Download } from 'lucide-react';
 import { getClients, createQuote, Client, QuoteItem, getCompanySettings } from '@/lib/data';
 import { checkPlanLimit } from '@/lib/subscription';
-import PaymentPhoneModal from '@/components/PaymentPhoneModal';
+import PlanSelectionModal from '@/components/PlanSelectionModal';
 
 export default function CreateQuotePage() {
   const router = useRouter();
@@ -17,9 +17,8 @@ export default function CreateQuotePage() {
   const [createdQuoteId, setCreatedQuoteId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   
-  const [showPhoneModal, setShowPhoneModal] = useState(false);
-  const [paymentModalPlanId, setPaymentModalPlanId] = useState('Pro');
-  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState<string | null>(null);
   
   const [clients, setClients] = useState<Client[]>([]);
   
@@ -29,8 +28,7 @@ export default function CreateQuotePage() {
     // Vérification de la limite
     checkPlanLimit('quote').then(async (canCreate) => {
       if (!canCreate) {
-        setPaymentModalPlanId('Pro');
-        setShowPhoneModal(true);
+        setShowPlanModal(true);
       }
     });
 
@@ -69,6 +67,29 @@ export default function CreateQuotePage() {
   const subtotal = calculateSubtotal();
   const tax = subtotal * (taxRate / 100);
   const total = subtotal + tax;
+
+  const handleSelectPlan = async (planId: string) => {
+    setIsCheckoutLoading(planId);
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId, phone: '+22891475677', countryCode: 'TG' })
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'Erreur lors de la redirection');
+        router.push('/#pricing');
+      }
+    } catch (e) {
+      alert('Erreur de connexion');
+      router.push('/#pricing');
+    } finally {
+      setIsCheckoutLoading(null);
+    }
+  };
 
   const handleSubmit = async (status: 'Brouillon' | 'Envoyé') => {
     if (!clientId) return;
@@ -245,33 +266,11 @@ export default function CreateQuotePage() {
         </div>
       )}
 
-      <PaymentPhoneModal 
-        isOpen={showPhoneModal}
+      <PlanSelectionModal 
+        isOpen={showPlanModal}
         onClose={() => router.push('/#pricing')}
-        onSubmit={async (phone, countryCode) => {
-          setIsCheckoutLoading(true);
-          try {
-            const response = await fetch('/api/checkout', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ planId: paymentModalPlanId, phone, countryCode })
-            });
-            const data = await response.json();
-            if (data.url) {
-              window.location.href = data.url;
-            } else {
-              alert(data.error || 'Erreur lors de la redirection');
-              router.push('/#pricing');
-            }
-          } catch (e) {
-            alert('Erreur de connexion');
-            router.push('/#pricing');
-          } finally {
-            setIsCheckoutLoading(false);
-          }
-        }}
+        onSelectPlan={handleSelectPlan}
         isLoading={isCheckoutLoading}
-        planName={paymentModalPlanId}
       />
     </div>
   );

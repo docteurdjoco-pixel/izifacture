@@ -70,7 +70,10 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       console.error('Erreur Chariow API:', result);
-      const errorMsg = result.errors ? JSON.stringify(result.errors) : (result.message || JSON.stringify(result));
+      let errorMsg = result.message || JSON.stringify(result);
+      if (result.errors && Object.keys(result.errors).length > 0) {
+        errorMsg = typeof result.errors === 'string' ? result.errors : JSON.stringify(result.errors);
+      }
       return NextResponse.json({ error: `Erreur Chariow: ${errorMsg}` }, { status: 500 });
     }
 

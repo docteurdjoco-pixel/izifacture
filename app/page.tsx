@@ -33,12 +33,10 @@ export default function LandingPage() {
         window.location.href = data.url;
       } else {
         alert(data.error || 'Une erreur est survenue. Veuillez réessayer.');
-        setShowPhoneModal(false);
       }
     } catch (error) {
       console.error('Erreur lors de la souscription:', error);
       alert('Erreur de connexion au serveur.');
-      setShowPhoneModal(false);
     } finally {
       setIsLoading(null);
     }
@@ -360,6 +358,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
 
       <PaymentPhoneModal 
         isOpen={showPhoneModal}

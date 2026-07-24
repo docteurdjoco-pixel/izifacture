@@ -16,8 +16,23 @@ export default function PaymentPhoneModal({ isOpen, onClose, onSubmit, isLoading
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone.trim() !== '') {
-      onSubmit(phone.trim(), 'TG'); // Par défaut TG si saisi dans le champ
+    let p = phone.trim();
+    if (p !== '') {
+      let cc = 'TG';
+      if (p.startsWith('+229') || p.startsWith('00229')) cc = 'BJ';
+      else if (p.startsWith('+225') || p.startsWith('00225')) cc = 'CI';
+      else if (p.startsWith('+221') || p.startsWith('00221')) cc = 'SN';
+      else if (p.startsWith('+226') || p.startsWith('00226')) cc = 'BF';
+      else if (p.startsWith('+227') || p.startsWith('00227')) cc = 'NE';
+      else if (p.startsWith('+223') || p.startsWith('00223')) cc = 'ML';
+      else if (p.startsWith('+237') || p.startsWith('00237')) cc = 'CM';
+      else if (p.startsWith('+241') || p.startsWith('00241')) cc = 'GA';
+      else if (p.startsWith('+242') || p.startsWith('00242')) cc = 'CG';
+      else if (p.startsWith('+243') || p.startsWith('00243')) cc = 'CD';
+      else if (p.startsWith('+33') || p.startsWith('0033')) cc = 'FR';
+      
+      // Nettoyer un peu le numéro si on veut (Chariow accepte souvent avec le +, mais au cas où on l'enlève pas)
+      onSubmit(p, cc);
     }
   };
 
