@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Izifacture - Dashboard",
   description: "SaaS de facturation pour entrepreneurs africains",
+  icons: {
+    icon: "/izifacture favicon.png",
+  },
 };
 
 export default function RootLayout({
@@ -18,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={`${inter.className} bg-background text-text h-screen flex overflow-hidden`}>
+      <body className={`${inter.className} bg-background text-text h-[100dvh] flex overflow-hidden`}>
         <LayoutWrapper>
           {children}
         </LayoutWrapper>

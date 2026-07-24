@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Trash2, Save, Send, CheckCircle, Download } from 'lucide-react';
 import { getClients, createInvoice, Client, InvoiceItem, getCompanySettings } from '@/lib/data';
+import { checkPlanLimit } from '@/lib/subscription';
+import PaymentPhoneModal from '@/components/PaymentPhoneModal';
 
 export default function CreateInvoicePage() {
   const router = useRouter();
@@ -15,18 +17,29 @@ export default function CreateInvoicePage() {
   const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [paymentModalPlanId, setPaymentModalPlanId] = useState('Pro');
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  
   const [clients, setClients] = useState<Client[]>([]);
   
   const [taxRate, setTaxRate] = useState<number>(18);
   
   React.useEffect(() => {
+    checkPlanLimit('invoice').then(async (canCreate) => {
+      if (!canCreate) {
+        setPaymentModalPlanId('Pro');
+        setShowPhoneModal(true);
+      }
+    });
+
     getClients().then(setClients);
     getCompanySettings().then(settings => {
       if (settings && settings.taxRate !== undefined) {
         setTaxRate(settings.taxRate);
       }
     });
-  }, []);
+  }, [router]);
 
   const [items, setItems] = useState<Omit<InvoiceItem, 'id' | 'total'>[]>([
     { description: '', quantity: 1, unitPrice: 0 }
@@ -244,6 +257,35 @@ export default function CreateInvoicePage() {
           </div>
         </div>
       )}
+
+      <PaymentPhoneModal 
+        isOpen={showPhoneModal}
+        onClose={() => router.push('/#pricing')}
+        onSubmit={async (phone, countryCode) => {
+          setIsCheckoutLoading(true);
+          try {
+            const response = await fetch('/api/checkout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ planId: paymentModalPlanId, phone, countryCode })
+            });
+            const data = await response.json();
+            if (data.url) {
+              window.location.href = data.url;
+            } else {
+              alert(data.error || 'Erreur lors de la redirection');
+              router.push('/#pricing');
+            }
+          } catch (e) {
+            alert('Erreur de connexion');
+            router.push('/#pricing');
+          } finally {
+            setIsCheckoutLoading(false);
+          }
+        }}
+        isLoading={isCheckoutLoading}
+        planName={paymentModalPlanId}
+      />
     </div>
   );
 }

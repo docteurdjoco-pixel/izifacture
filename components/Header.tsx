@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Bell, Menu, X, LayoutDashboard, Users, FileText, HelpCircle, Settings, LogOut, Moon } from 'lucide-react';
+import { Bell, Menu, X, LayoutDashboard, Users, FileText, HelpCircle, Settings, LogOut, Moon, Shield } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const Header = () => {
@@ -11,11 +11,33 @@ const Header = () => {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     if (document.documentElement.classList.contains('dark')) {
       setIsDark(true);
     }
+    
+    const fetchUserPlan = async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      if (authData.user) {
+        setUserEmail(authData.user.email || null);
+        if (authData.user.email === 'docteurdjoco@gmail.com') {
+          setUserPlan('Admin');
+        } else {
+          const { data: subData } = await supabase
+            .from('user_subscriptions')
+            .select('plan_id')
+            .eq('user_id', authData.user.id)
+            .single();
+          
+          setUserPlan(subData?.plan_id || 'Gratuit');
+        }
+      }
+    };
+    
+    fetchUserPlan();
   }, []);
 
   const toggleDarkMode = () => {
@@ -29,14 +51,15 @@ const Header = () => {
   };
 
   const getBreadcrumb = () => {
-    if (pathname === '/') return { section: 'Dashboard', page: 'Aperçu' };
-    if (pathname.startsWith('/clients')) return { section: 'Clients', page: 'Liste' };
-    if (pathname.startsWith('/invoices/create')) return { section: 'Factures', page: 'Création' };
-    if (pathname.startsWith('/invoices/')) return { section: 'Factures', page: 'Détails' };
-    if (pathname.startsWith('/invoices')) return { section: 'Factures', page: 'Liste' };
-    if (pathname.startsWith('/quotes/create')) return { section: 'Devis', page: 'Création' };
-    if (pathname.startsWith('/quotes/')) return { section: 'Devis', page: 'Détails' };
-    if (pathname.startsWith('/quotes')) return { section: 'Devis', page: 'Liste' };
+    if (pathname === '/dashboard') return { section: 'Dashboard', page: 'Aperçu' };
+    if (pathname?.startsWith('/admin')) return { section: 'Administration', page: 'Vue d\'ensemble' };
+    if (pathname?.startsWith('/clients')) return { section: 'Clients', page: 'Liste' };
+    if (pathname?.startsWith('/invoices/create')) return { section: 'Factures', page: 'Création' };
+    if (pathname?.startsWith('/invoices/')) return { section: 'Factures', page: 'Détails' };
+    if (pathname?.startsWith('/invoices')) return { section: 'Factures', page: 'Liste' };
+    if (pathname?.startsWith('/quotes/create')) return { section: 'Devis', page: 'Création' };
+    if (pathname?.startsWith('/quotes/')) return { section: 'Devis', page: 'Détails' };
+    if (pathname?.startsWith('/quotes')) return { section: 'Devis', page: 'Liste' };
     return { section: 'Dashboard', page: 'Aperçu' };
   };
 
@@ -59,17 +82,23 @@ const Header = () => {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="relative text-muted hover:text-text transition-colors">
-          <Bell size={20} />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        {userPlan && (
+          <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm border ${
+            userPlan === 'Admin' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+            userPlan === 'Business' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+            userPlan === 'Pro' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+            'bg-gray-100 text-gray-700 border-gray-200'
+          }`}>
+            {userPlan}
+          </span>
+        )}
       </div>
 
       {/* Mobile Menu Dropdown */}
       {isMenuOpen && (
         <div className="absolute top-full left-0 w-full bg-surface border-b border-border shadow-lg md:hidden flex flex-col py-2 px-4 animate-in slide-in-from-top-2 duration-200">
           <nav className="space-y-1">
-            <Link href="/" onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-colors ${pathname === '/' ? 'bg-blue-50 text-blue-600' : 'text-text hover:bg-background'}`}>
+            <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-colors ${pathname === '/dashboard' ? 'bg-blue-50 text-blue-600' : 'text-text hover:bg-background'}`}>
               <LayoutDashboard size={20} />
               Dashboard
             </Link>
@@ -86,6 +115,12 @@ const Header = () => {
               Devis
             </Link>
             <div className="h-px bg-border my-2"></div>
+            {userEmail === 'docteurdjoco@gmail.com' && (
+              <Link href="/admin" onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-colors ${pathname.startsWith('/admin') ? 'bg-blue-50 text-blue-600' : 'text-text hover:bg-background'}`}>
+                <Shield size={20} />
+                Administrateur
+              </Link>
+            )}
             <Link href="/support" onClick={() => setIsMenuOpen(false)} className={`flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-colors ${pathname.startsWith('/support') ? 'bg-blue-50 text-blue-600' : 'text-text hover:bg-background'}`}>
               <HelpCircle size={20} />
               Aide et Support
@@ -102,6 +137,18 @@ const Header = () => {
               </div>
               <div className={`w-10 h-5 rounded-full relative transition-colors ${isDark ? 'bg-blue-600' : 'bg-gray-300'}`}>
                 <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 shadow-sm transition-all duration-300 ${isDark ? 'left-5' : 'left-0.5'}`}></div>
+              </div>
+            </div>
+
+            <div className="mt-2 pt-4 border-t border-border flex items-center gap-3 px-3 pb-2">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold overflow-hidden shrink-0 uppercase">
+                {userEmail ? userEmail.charAt(0) : 'U'}
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <div className="font-semibold text-sm truncate text-text capitalize">
+                  {userEmail ? userEmail.split('@')[0].replace('.', ' ') : 'Utilisateur'}
+                </div>
+                <div className="text-xs text-muted truncate">{userEmail || 'Chargement...'}</div>
               </div>
             </div>
 

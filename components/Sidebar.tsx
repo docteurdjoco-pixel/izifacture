@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, Wallet, Settings, HelpCircle, Moon, Users, Search, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, Wallet, Settings, HelpCircle, Moon, Users, Search, LogOut, Shield } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const Sidebar = () => {
@@ -52,7 +52,7 @@ const Sidebar = () => {
         <div className="text-xs font-semibold text-muted mb-4 px-2 tracking-wider">MENU</div>
 
         <nav className="space-y-1">
-          <Link href="/" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors ${pathname === '/' ? 'bg-blue-50 text-blue-600' : 'text-muted hover:bg-background hover:text-text'}`}>
+          <Link href="/dashboard" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors ${pathname === '/dashboard' ? 'bg-blue-50 text-blue-600' : 'text-muted hover:bg-background hover:text-text'}`}>
             <LayoutDashboard size={20} />
             Dashboard
           </Link>
@@ -72,6 +72,12 @@ const Sidebar = () => {
       </div>
 
       <div className="space-y-1">
+        {userEmail === 'docteurdjoco@gmail.com' && (
+          <Link href="/admin" className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors ${pathname.startsWith('/admin') ? 'bg-blue-50 text-blue-600' : 'text-muted hover:bg-background hover:text-text'}`}>
+            <Shield size={20} />
+            Administrateur
+          </Link>
+        )}
         <Link href="/support" className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors ${pathname.startsWith('/support') ? 'bg-blue-50 text-blue-600' : 'text-muted hover:bg-background hover:text-text'}`}>
           <HelpCircle size={20} />
           Aide et Support

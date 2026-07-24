@@ -176,8 +176,8 @@ export default function ClientsPage() {
                 <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-background text-text rounded-md px-4 py-2 text-sm outline-none border border-border focus:border-blue-500" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-text mb-1">Adresse Email *</label>
-                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-background text-text rounded-md px-4 py-2 text-sm outline-none border border-border focus:border-blue-500" />
+                <label className="block text-sm font-medium text-text mb-1">Adresse Email</label>
+                <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-background text-text rounded-md px-4 py-2 text-sm outline-none border border-border focus:border-blue-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text mb-1">Téléphone</label>

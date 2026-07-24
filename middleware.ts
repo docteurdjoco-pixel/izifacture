@@ -32,9 +32,10 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')
+  const isPublicPage = request.nextUrl.pathname === '/' || isAuthPage
 
-  if (!user && !isAuthPage) {
-    // If not logged in and not on auth pages, redirect to login
+  if (!user && !isPublicPage) {
+    // If not logged in and not on public pages, redirect to login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -43,7 +44,7 @@ export async function middleware(request: NextRequest) {
   if (user && isAuthPage) {
     // If logged in and on auth pages, redirect to dashboard
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 

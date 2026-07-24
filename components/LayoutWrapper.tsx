@@ -8,11 +8,20 @@ import Header from "@/components/Header";
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   
-  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
+  const isAuthPage = pathname?.startsWith('/login') || pathname?.startsWith('/register');
+  const isLandingPage = pathname === '/';
 
   if (isAuthPage) {
     return (
-      <main className="h-full w-full bg-gray-50 flex items-center justify-center">
+      <main className="h-full w-full overflow-y-auto bg-gray-50 flex items-center justify-center">
+        {children}
+      </main>
+    );
+  }
+
+  if (isLandingPage) {
+    return (
+      <main className="h-full w-full overflow-y-auto bg-white">
         {children}
       </main>
     );
@@ -23,7 +32,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       <Sidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-8 bg-background">
+        <main className="flex-1 overflow-y-auto p-2 pb-24 sm:p-4 md:p-8 bg-background">
           {children}
         </main>
       </div>
