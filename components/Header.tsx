@@ -3,22 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Bell, Menu, X, LayoutDashboard, Users, FileText, HelpCircle, Settings, LogOut, Moon, Shield } from 'lucide-react';
+import { Bell, Menu, X, LayoutDashboard, Users, FileText, HelpCircle, Settings, LogOut, Shield } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [userPlan, setUserPlan] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    if (document.documentElement.classList.contains('dark')) {
-      setIsDark(true);
-    }
-    
     const fetchUserPlan = async () => {
       const { data: authData } = await supabase.auth.getUser();
       if (authData.user) {
@@ -39,16 +34,6 @@ const Header = () => {
     
     fetchUserPlan();
   }, []);
-
-  const toggleDarkMode = () => {
-    if (isDark) {
-      document.documentElement.classList.remove('dark');
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      setIsDark(true);
-    }
-  };
 
   const getBreadcrumb = () => {
     if (pathname === '/dashboard') return { section: 'Dashboard', page: 'Aperçu' };
@@ -130,16 +115,6 @@ const Header = () => {
               Paramètres
             </Link>
             
-            <div className="flex items-center justify-between px-3 py-3 rounded-lg font-medium cursor-pointer text-text hover:bg-background transition-colors" onClick={toggleDarkMode}>
-              <div className="flex items-center gap-3">
-                <Moon size={20} />
-                Mode Sombre
-              </div>
-              <div className={`w-10 h-5 rounded-full relative transition-colors ${isDark ? 'bg-blue-600' : 'bg-gray-300'}`}>
-                <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 shadow-sm transition-all duration-300 ${isDark ? 'left-5' : 'left-0.5'}`}></div>
-              </div>
-            </div>
-
             <div className="mt-2 pt-4 border-t border-border flex items-center gap-3 px-3 pb-2">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold overflow-hidden shrink-0 uppercase">
                 {userEmail ? userEmail.charAt(0) : 'U'}

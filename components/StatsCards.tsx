@@ -4,7 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { FileText, DollarSign, CheckCircle2, Clock, AlertCircle, FileEdit } from 'lucide-react';
 import { getDashboardStats } from '@/lib/data';
 
+type DateFilter = 'today' | '7days' | '30days' | 'all';
+
 const StatsCards = () => {
+  const [filter, setFilter] = useState<DateFilter>('today');
   const [statsData, setStatsData] = useState({
     totalInvoices: 0,
     amountBilled: 0,
@@ -15,10 +18,10 @@ const StatsCards = () => {
   });
 
   useEffect(() => {
-    getDashboardStats().then(data => {
+    getDashboardStats(filter).then(data => {
       if (data) setStatsData(data);
     });
-  }, []);
+  }, [filter]);
 
   const stats = [
     {
@@ -72,8 +75,36 @@ const StatsCards = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-      {stats.map((stat, index) => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-4 gap-1 md:flex md:gap-2 w-full">
+        <button
+          onClick={() => setFilter('today')}
+          className={`px-1 md:px-4 py-2 rounded-lg font-medium text-[10px] sm:text-xs md:text-sm transition-colors text-center leading-tight flex items-center justify-center ${filter === 'today' ? 'bg-blue-600 text-white shadow-sm' : 'bg-surface border border-border text-text hover:bg-gray-50'}`}
+        >
+          Aujourd'hui
+        </button>
+        <button
+          onClick={() => setFilter('7days')}
+          className={`px-1 md:px-4 py-2 rounded-lg font-medium text-[10px] sm:text-xs md:text-sm transition-colors text-center leading-tight flex items-center justify-center ${filter === '7days' ? 'bg-blue-600 text-white shadow-sm' : 'bg-surface border border-border text-text hover:bg-gray-50'}`}
+        >
+          7 derniers jours
+        </button>
+        <button
+          onClick={() => setFilter('30days')}
+          className={`px-1 md:px-4 py-2 rounded-lg font-medium text-[10px] sm:text-xs md:text-sm transition-colors text-center leading-tight flex items-center justify-center ${filter === '30days' ? 'bg-blue-600 text-white shadow-sm' : 'bg-surface border border-border text-text hover:bg-gray-50'}`}
+        >
+          30 derniers jours
+        </button>
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-1 md:px-4 py-2 rounded-lg font-medium text-[10px] sm:text-xs md:text-sm transition-colors text-center leading-tight flex items-center justify-center ${filter === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'bg-surface border border-border text-text hover:bg-gray-50'}`}
+        >
+          Tous
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {stats.map((stat, index) => (
         <div key={index} className="bg-surface p-6 rounded-xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -86,6 +117,7 @@ const StatsCards = () => {
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 };

@@ -3,20 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, Wallet, Settings, HelpCircle, Moon, Users, Search, LogOut, Shield } from 'lucide-react';
+import { LayoutDashboard, FileText, Wallet, Settings, HelpCircle, Users, Search, LogOut, Shield } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [isDark, setIsDark] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    if (document.documentElement.classList.contains('dark')) {
-      setIsDark(true);
-    }
-    
     // Fetch the current user
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -27,15 +22,7 @@ const Sidebar = () => {
     fetchUser();
   }, []);
 
-  const toggleDarkMode = () => {
-    if (isDark) {
-      document.documentElement.classList.remove('dark');
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      setIsDark(true);
-    }
-  };
+
 
   return (
     <aside className="w-64 bg-surface border-r border-border h-screen flex flex-col justify-between p-4 hidden md:flex shrink-0">
@@ -86,15 +73,7 @@ const Sidebar = () => {
           <Settings size={20} />
           Paramètres
         </Link>
-        <div className="flex items-center justify-between px-3 py-2 text-muted font-medium cursor-pointer" onClick={toggleDarkMode}>
-          <div className="flex items-center gap-3">
-            <Moon size={20} />
-            Mode Sombre
-          </div>
-          <div className={`w-10 h-5 rounded-full relative transition-colors ${isDark ? 'bg-blue-600' : 'bg-gray-300'}`}>
-            <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 shadow-sm transition-all duration-300 ${isDark ? 'left-5' : 'left-0.5'}`}></div>
-          </div>
-        </div>
+
 
         <div className="mt-4 pt-4 border-t border-border flex items-center gap-3 px-2">
           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold overflow-hidden shrink-0 uppercase">

@@ -305,10 +305,25 @@ export const deleteClient = async (id: string) => {
   return true;
 };
 
-export const getDashboardStats = async () => {
-  const { data: invoices, error } = await supabase
-    .from('invoices')
-    .select('status, total');
+export const getDashboardStats = async (dateFilter: 'today' | '7days' | '30days' | 'all' = 'today') => {
+  let query = supabase.from('invoices').select('status, total, created_at');
+
+  if (dateFilter !== 'all') {
+    const now = new Date();
+    let startDate = new Date();
+    
+    if (dateFilter === 'today') {
+      startDate.setHours(0, 0, 0, 0);
+    } else if (dateFilter === '7days') {
+      startDate.setDate(now.getDate() - 7);
+    } else if (dateFilter === '30days') {
+      startDate.setDate(now.getDate() - 30);
+    }
+    
+    query = query.gte('created_at', startDate.toISOString());
+  }
+
+  const { data: invoices, error } = await query;
     
   if (error) {
     console.error('Error fetching stats:', error);
